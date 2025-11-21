@@ -103,10 +103,10 @@ class MemoryService:
             if cached:
                 return json.loads(cached)
 
-        # Generate embedding via Cohere (v4 multilingual model)
+        # Generate embedding via Cohere (v3 multilingual model)
         response = self.cohere_client.embed(
             texts=[text],
-            model="embed-multilingual-v4.0",
+            model="embed-multilingual-v3.0",
             input_type="search_document",
             embedding_types=["float"]
         )
@@ -152,10 +152,11 @@ class MemoryService:
             )
 
             # Generate presigned URL (valid for 7 days)
+            from datetime import timedelta
             url = self.minio_client.presigned_get_object(
                 bucket_name,
                 object_name,
-                expires=7 * 24 * 60 * 60
+                expires=timedelta(days=7)
             )
             return url
 
@@ -476,10 +477,10 @@ if __name__ == "__main__":
     import time
     print("🚀 Agent Memz Memory Service - Ready")
     print("📊 Stack: PostgreSQL + pgvector + Apache AGE + Redis + MinIO")
-    print("🤖 Embeddings: Cohere v4 multilingual (1024-dim)")
+    print("🤖 Embeddings: Cohere v3 multilingual (1024-dim)")
     print("✅ All services operational")
     print("\nRun 'python tests/test_integration.py' for comprehensive testing")
-    
+
     # Keep container alive
     while True:
         time.sleep(60)
