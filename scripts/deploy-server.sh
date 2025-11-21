@@ -42,13 +42,13 @@ if [ ! -f "$DEPLOY_DIR/secrets/minio_password.txt" ]; then
     echo "✓ Created minio_password secret"
 fi
 
-if [ ! -f "$DEPLOY_DIR/secrets/openai_api_key.txt" ]; then
-    if [ -n "$OPENAI_API_KEY" ]; then
-        echo "$OPENAI_API_KEY" > $DEPLOY_DIR/secrets/openai_api_key.txt
-        chmod 600 $DEPLOY_DIR/secrets/openai_api_key.txt
-        echo "✓ Created openai_api_key secret"
+if [ ! -f "$DEPLOY_DIR/secrets/cohere_api_key.txt" ]; then
+    if [ -n "$COHERE_API_KEY" ]; then
+        echo "$COHERE_API_KEY" > $DEPLOY_DIR/secrets/cohere_api_key.txt
+        chmod 600 $DEPLOY_DIR/secrets/cohere_api_key.txt
+        echo "✓ Created cohere_api_key secret"
     else
-        echo "⚠️  OPENAI_API_KEY not set - create secrets/openai_api_key.txt manually"
+        echo "⚠️  COHERE_API_KEY not set - create secrets/cohere_api_key.txt manually"
     fi
 fi
 

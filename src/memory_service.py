@@ -18,9 +18,8 @@ import redis
 from minio import Minio
 from minio.error import S3Error
 
-# For embeddings generation (example with OpenAI)
-# You can swap this for local models like sentence-transformers
-from openai import OpenAI
+# For embeddings generation using Cohere
+import cohere
 
 
 def read_secret(secret_name: str, default: str = None) -> str:
@@ -52,9 +51,9 @@ class MemoryService:
         self.pg_conn = self._init_postgres()
         self.redis_client = self._init_redis()
         self.minio_client = self._init_minio()
-        # Read OpenAI API key from Docker secret or env var
-        openai_key = read_secret('openai_api_key', os.getenv('OPENAI_API_KEY'))
-        self.openai_client = OpenAI(api_key=openai_key) if openai_key else None
+        # Read Cohere API key from Docker secret or env var
+        cohere_key = read_secret('cohere_api_key', os.getenv('COHERE_API_KEY'))
+        self.cohere_client = cohere.Client(api_key=cohere_key) if cohere_key else None
 
     def _init_postgres(self) -> psycopg2.extensions.connection:
         """Initialize PostgreSQL connection"""
@@ -91,7 +90,7 @@ class MemoryService:
 
     def generate_embedding(self, text: str, use_cache: bool = True) -> List[float]:
         """
-        Generate embedding vector for text
+        Generate embedding vector for text using Cohere
         Uses Redis cache to avoid redundant API calls
         """
         # Create hash of text for caching
@@ -104,12 +103,13 @@ class MemoryService:
             if cached:
                 return json.loads(cached)
 
-        # Generate embedding via OpenAI
-        response = self.openai_client.embeddings.create(
-            model="text-embedding-ada-002",
-            input=text
+        # Generate embedding via Cohere
+        response = self.cohere_client.embed(
+            texts=[text],
+            model="embed-english-v3.0",
+            input_type="search_document"
         )
-        embedding = response.data[0].embedding
+        embedding = response.embeddings[0]
 
         # Cache for 7 days
         if use_cache:

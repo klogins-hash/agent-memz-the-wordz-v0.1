@@ -120,7 +120,7 @@ services:
     secrets:
       - postgres_password
       - minio_password
-      - openai_api_key
+      - cohere_api_key
     restart: unless-stopped
 
 networks:
@@ -140,5 +140,5 @@ secrets:
     file: ./secrets/postgres_password.txt
   minio_password:
     file: ./secrets/minio_password.txt
-  openai_api_key:
-    file: ./secrets/openai_api_key.txt
+  cohere_api_key:
+    file: ./secrets/cohere_api_key.txt
