@@ -55,8 +55,6 @@ services:
       - agent-network
     secrets:
       - grafana_password
-    depends_on:
-      - prometheus
 
   # Node Exporter - System Metrics
   node-exporter:
@@ -108,8 +106,6 @@ services:
       - agent-network
     secrets:
       - postgres_password
-    depends_on:
-      - postgres
 
   # Redis Exporter - Redis Metrics
   redis-exporter:
@@ -122,8 +118,6 @@ services:
       REDIS_ADDR: "redis:6379"
     networks:
       - agent-network
-    depends_on:
-      - redis
 
 networks:
   agent-network:
