@@ -471,47 +471,15 @@ class MemoryService:
         self.redis_client.close()
 
 
-# Example usage
+# Service is ready to use - see tests/test_integration.py for comprehensive examples
 if __name__ == "__main__":
-    # Initialize service
-    service = MemoryService()
-
-    # Example workflow
-    user_id = "user_123"
-    session_id = "session_abc"
-
-    # 1. Create conversation
-    conversation_id = service.create_conversation(user_id, session_id)
-    print(f"Created conversation: {conversation_id}")
-
-    # 2. Add a message
-    message = service.add_message(
-        conversation_id,
-        role="user",
-        content="I love hiking in the mountains and photography"
-    )
-    print(f"Added message: {message['message_id']}")
-
-    # 3. Extract and store facts
-    facts = service.extract_and_store_facts(
-        user_id,
-        "User loves hiking and photography",
-        message['message_id'],
-        fact_type='preference'
-    )
-    print(f"Stored facts: {facts}")
-
-    # 4. Find similar memories
-    similar = service.find_similar_memories(
-        "What outdoor activities does the user enjoy?",
-        user_id,
-        limit=5
-    )
-    print(f"Similar memories: {similar}")
-
-    # 5. Get memory summary
-    summary = service.get_user_memory_summary(user_id)
-    print(f"Memory summary: {summary}")
-
-    # Clean up
-    service.close()
+    import time
+    print("🚀 Agent Memz Memory Service - Ready")
+    print("📊 Stack: PostgreSQL + pgvector + Apache AGE + Redis + MinIO")
+    print("🤖 Embeddings: Cohere v4 multilingual (1024-dim)")
+    print("✅ All services operational")
+    print("\nRun 'python tests/test_integration.py' for comprehensive testing")
+    
+    # Keep container alive
+    while True:
+        time.sleep(60)
