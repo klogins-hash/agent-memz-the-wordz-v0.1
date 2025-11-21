@@ -1,0 +1,165 @@
+version: '3.8'
+
+# Modified for Coolify Integration
+# Uses Coolify's existing Traefik instead of deploying our own
+
+services:
+  # OAuth2 Proxy - GitHub SSO Authentication
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    container_name: agent-memz-oauth2-proxy
+    restart: unless-stopped
+    command:
+      - --http-address=0.0.0.0:4180
+      - --provider=github
+      - --email-domain=*
+      - --upstream=static://200
+      - --cookie-secure=true
+      - --cookie-domain=.${DOMAIN}
+      - --whitelist-domain=.${DOMAIN}
+      - --redirect-url=https://auth.${DOMAIN}/oauth2/callback
+    environment:
+      OAUTH2_PROXY_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      OAUTH2_PROXY_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      OAUTH2_PROXY_COOKIE_SECRET: ${OAUTH2_COOKIE_SECRET}
+    networks:
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.oauth2-proxy.rule=Host(`auth.${DOMAIN}`)"
+      - "traefik.http.routers.oauth2-proxy.entrypoints=https"
+      - "traefik.http.routers.oauth2-proxy.tls=true"
+      - "traefik.http.routers.oauth2-proxy.tls.certresolver=letsencrypt"
+      - "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
+      # OAuth2 Proxy Middleware
+      - "traefik.http.middlewares.oauth2-proxy.forwardauth.address=http://agent-memz-oauth2-proxy:4180/oauth2/auth"
+      - "traefik.http.middlewares.oauth2-proxy.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.oauth2-proxy.forwardauth.authResponseHeaders=X-Auth-Request-User,X-Auth-Request-Email"
+
+  # Dashboard with Traefik labels
+  dashboard:
+    image: nginx:alpine
+    container_name: agent-memz-dashboard-sso
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/dashboard:/usr/share/nginx/html:ro
+    networks:
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`monitor.${DOMAIN}`) || Host(`${DOMAIN}`)"
+      - "traefik.http.routers.dashboard.entrypoints=https"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard.middlewares=oauth2-proxy"
+      - "traefik.http.services.dashboard.loadbalancer.server.port=80"
+
+  # Grafana with Traefik labels
+  grafana-sso:
+    image: grafana/grafana:latest
+    container_name: agent-memz-grafana-sso
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_PROXY_ENABLED=true
+      - GF_AUTH_PROXY_HEADER_NAME=X-Auth-Request-Email
+      - GF_AUTH_PROXY_HEADER_PROPERTY=email
+      - GF_AUTH_PROXY_AUTO_SIGN_UP=true
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_SERVER_ROOT_URL=https://grafana.${DOMAIN}
+    volumes:
+      - grafana_sso_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.${DOMAIN}`)"
+      - "traefik.http.routers.grafana.entrypoints=https"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.grafana.middlewares=oauth2-proxy"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+  # Prometheus with Traefik labels
+  prometheus-sso:
+    image: prom/prometheus:latest
+    container_name: agent-memz-prometheus-sso
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_sso_data:/prometheus
+    networks:
+      - coolify
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.${DOMAIN}`)"
+      - "traefik.http.routers.prometheus.entrypoints=https"
+      - "traefik.http.routers.prometheus.tls=true"
+      - "traefik.http.routers.prometheus.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.prometheus.middlewares=oauth2-proxy"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+
+  # Portainer with Traefik labels
+  portainer-sso:
+    image: portainer/portainer-ce:latest
+    container_name: agent-memz-portainer-sso
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_sso_data:/data
+    networks:
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.${DOMAIN}`)"
+      - "traefik.http.routers.portainer.entrypoints=https"
+      - "traefik.http.routers.portainer.tls=true"
+      - "traefik.http.routers.portainer.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.portainer.middlewares=oauth2-proxy"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+
+  # cAdvisor with Traefik labels
+  cadvisor-sso:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: agent-memz-cadvisor-sso
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - coolify
+    privileged: true
+    devices:
+      - /dev/kmsg
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cadvisor.rule=Host(`cadvisor.${DOMAIN}`)"
+      - "traefik.http.routers.cadvisor.entrypoints=https"
+      - "traefik.http.routers.cadvisor.tls=true"
+      - "traefik.http.routers.cadvisor.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.cadvisor.middlewares=oauth2-proxy"
+      - "traefik.http.services.cadvisor.loadbalancer.server.port=8080"
+
+networks:
+  coolify:
+    external: true
+
+volumes:
+  grafana_sso_data:
+    driver: local
+  prometheus_sso_data:
+    driver: local
+  portainer_sso_data:
+    driver: local

@@ -4,8 +4,8 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    cluster: 'agent-memz'
-    environment: 'production'
+    cluster: "agent-memz"
+    environment: "production"
 
 # Alertmanager configuration (optional - can be added later)
 # alerting:
@@ -16,41 +16,41 @@ global:
 # Scrape configurations
 scrape_configs:
   # Prometheus itself
-  - job_name: 'prometheus'
+  - job_name: "prometheus"
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ["localhost:9090"]
         labels:
-          service: 'prometheus'
+          service: "prometheus"
 
   # Node Exporter - System metrics (CPU, memory, disk, network)
-  - job_name: 'node-exporter'
+  - job_name: "node-exporter"
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: ["node-exporter:9100"]
         labels:
-          service: 'node-exporter'
-          instance: 'hetzner-server'
+          service: "node-exporter"
+          instance: "hetzner-server"
 
   # cAdvisor - Container metrics
-  - job_name: 'cadvisor'
+  - job_name: "cadvisor"
     static_configs:
-      - targets: ['cadvisor:8080']
+      - targets: ["cadvisor:8080"]
         labels:
-          service: 'cadvisor'
+          service: "cadvisor"
 
   # PostgreSQL Exporter - Database metrics
-  - job_name: 'postgres'
+  - job_name: "postgres"
     static_configs:
-      - targets: ['postgres-exporter:9187']
+      - targets: ["postgres-exporter:9187"]
         labels:
-          service: 'postgresql'
-          database: 'agent_memory'
+          service: "postgresql"
+          database: "agent_memory"
 
   # Redis Exporter - Cache metrics
-  - job_name: 'redis'
+  - job_name: "redis"
     static_configs:
-      - targets: ['redis-exporter:9121']
+      - targets: ["redis-exporter:9121"]
         labels:
-          service: 'redis'
+          service: "redis"
 
   # Application metrics (if we add /metrics endpoint later)
   # - job_name: 'agent-memz-api'

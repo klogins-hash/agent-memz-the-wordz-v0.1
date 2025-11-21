@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  airbyte-proxy:
+    image: nginx:alpine
+    container_name: airbyte-proxy
+    restart: unless-stopped
+    networks:
+      - coolify
+    volumes:
+      - ./nginx-airbyte.conf:/etc/nginx/nginx.conf:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.airbyte.rule=Host(`etl.basedaf.ai`)"
+      - "traefik.http.routers.airbyte.entrypoints=https"
+      - "traefik.http.routers.airbyte.tls=true"
+      - "traefik.http.routers.airbyte.tls.certresolver=letsencrypt"
+      - "traefik.http.services.airbyte.loadbalancer.server.port=80"
+      # Middleware for HTTPS redirect
+      - "traefik.http.routers.airbyte-http.rule=Host(`etl.basedaf.ai`)"
+      - "traefik.http.routers.airbyte-http.entrypoints=http"
+      - "traefik.http.routers.airbyte-http.middlewares=https-redirect"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+
+networks:
+  coolify:
+    external: true
