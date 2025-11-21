@@ -103,13 +103,14 @@ class MemoryService:
             if cached:
                 return json.loads(cached)
 
-        # Generate embedding via Cohere
+        # Generate embedding via Cohere (v4 multilingual model)
         response = self.cohere_client.embed(
             texts=[text],
-            model="embed-english-v3.0",
-            input_type="search_document"
+            model="embed-multilingual-v4.0",
+            input_type="search_document",
+            embedding_types=["float"]
         )
-        embedding = response.embeddings[0]
+        embedding = response.embeddings.float[0]
 
         # Cache for 7 days
         if use_cache:
