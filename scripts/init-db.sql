@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS voice_profiles (
 );
 
 CREATE INDEX idx_voice_profiles_user_id ON voice_profiles(user_id);
-CREATE INDEX idx_voice_profiles_embedding ON voice_profiles USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX idx_voice_profiles_voice_embedding ON voice_profiles USING hnsw (voice_embedding vector_cosine_ops);
 
 -- ============================================================
 -- SEMANTIC_CLUSTERS TABLE
