@@ -31,7 +31,35 @@ if [ -d "$DEPLOY_DIR/volumes" ]; then
     docker-compose exec -T postgres pg_dumpall -U agentmemz > $BACKUP_DIR/postgres_backup.sql || true
 fi
 
-# Create .env file if it doesn't exist
+# Create secrets directory
+echo "🔐 Setting up Docker secrets..."
+mkdir -p $DEPLOY_DIR/secrets
+chmod 700 $DEPLOY_DIR/secrets
+
+# Create secret files (only if they don't exist)
+if [ ! -f "$DEPLOY_DIR/secrets/postgres_password.txt" ]; then
+    echo "${POSTGRES_PASSWORD:-changeme_postgres_$(openssl rand -hex 16)}" > $DEPLOY_DIR/secrets/postgres_password.txt
+    chmod 600 $DEPLOY_DIR/secrets/postgres_password.txt
+    echo "✓ Created postgres_password secret"
+fi
+
+if [ ! -f "$DEPLOY_DIR/secrets/minio_password.txt" ]; then
+    echo "${MINIO_ROOT_PASSWORD:-changeme_minio_$(openssl rand -hex 16)}" > $DEPLOY_DIR/secrets/minio_password.txt
+    chmod 600 $DEPLOY_DIR/secrets/minio_password.txt
+    echo "✓ Created minio_password secret"
+fi
+
+if [ ! -f "$DEPLOY_DIR/secrets/openai_api_key.txt" ]; then
+    if [ -n "$OPENAI_API_KEY" ]; then
+        echo "$OPENAI_API_KEY" > $DEPLOY_DIR/secrets/openai_api_key.txt
+        chmod 600 $DEPLOY_DIR/secrets/openai_api_key.txt
+        echo "✓ Created openai_api_key secret"
+    else
+        echo "⚠️  OPENAI_API_KEY not set - create secrets/openai_api_key.txt manually"
+    fi
+fi
+
+# Create minimal .env file (non-sensitive config only)
 if [ ! -f "$DEPLOY_DIR/.env" ]; then
     echo "⚙️  Creating .env file..."
     cat > $DEPLOY_DIR/.env << EOF
@@ -39,37 +67,21 @@ if [ ! -f "$DEPLOY_DIR/.env" ]; then
 POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
 POSTGRES_USER=agentmemz
-POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-devpassword}
 POSTGRES_DB=agent_memory
 
 # Redis Configuration
 REDIS_HOST=redis
 REDIS_PORT=6379
-REDIS_URL=redis://redis:6379
 
 # MinIO Configuration
 MINIO_ENDPOINT=minio:9000
 MINIO_ROOT_USER=minioadmin
-MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin123}
 MINIO_SECURE=false
-
-# OpenAI API Key
-OPENAI_API_KEY=${OPENAI_API_KEY:-}
 
 # Application Settings
 APP_ENV=production
 DEBUG=false
 LOG_LEVEL=info
-
-# Vector Search Settings
-EMBEDDING_MODEL=text-embedding-ada-002
-EMBEDDING_DIMENSIONS=1536
-SIMILARITY_THRESHOLD=0.7
-
-# Voice Agent Settings
-VOICE_SAMPLE_RATE=16000
-AUDIO_FORMAT=wav
-MAX_AUDIO_SIZE_MB=10
 EOF
     chmod 600 $DEPLOY_DIR/.env
 fi

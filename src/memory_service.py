@@ -9,6 +9,7 @@ import json
 from datetime import datetime
 from typing import List, Dict, Optional, Any
 import numpy as np
+from pathlib import Path
 
 # Database and caching
 import psycopg2
@@ -22,6 +23,27 @@ from minio.error import S3Error
 from openai import OpenAI
 
 
+def read_secret(secret_name: str, default: str = None) -> str:
+    """
+    Read secret from Docker secrets or fall back to environment variable
+
+    Args:
+        secret_name: Name of the secret (e.g., 'postgres_password')
+        default: Default value if secret not found
+
+    Returns:
+        Secret value as string
+    """
+    # Try Docker secret first
+    secret_path = Path(f'/run/secrets/{secret_name}')
+    if secret_path.exists():
+        return secret_path.read_text().strip()
+
+    # Fall back to environment variable (for local development)
+    env_name = secret_name.upper()
+    return os.getenv(env_name, default)
+
+
 class MemoryService:
     """Main service for managing voice agent memory"""
 
@@ -30,16 +52,21 @@ class MemoryService:
         self.pg_conn = self._init_postgres()
         self.redis_client = self._init_redis()
         self.minio_client = self._init_minio()
-        self.openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        # Read OpenAI API key from Docker secret or env var
+        openai_key = read_secret('openai_api_key', os.getenv('OPENAI_API_KEY'))
+        self.openai_client = OpenAI(api_key=openai_key) if openai_key else None
 
     def _init_postgres(self) -> psycopg2.extensions.connection:
         """Initialize PostgreSQL connection"""
+        # Read password from Docker secret or env var
+        postgres_password = read_secret('postgres_password', os.getenv('POSTGRES_PASSWORD', 'devpassword'))
+
         return psycopg2.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
             port=os.getenv('POSTGRES_PORT', '5432'),
             database=os.getenv('POSTGRES_DB', 'agent_memory'),
             user=os.getenv('POSTGRES_USER', 'agentmemz'),
-            password=os.getenv('POSTGRES_PASSWORD', 'devpassword')
+            password=postgres_password
         )
 
     def _init_redis(self) -> redis.Redis:
@@ -52,10 +79,13 @@ class MemoryService:
 
     def _init_minio(self) -> Minio:
         """Initialize MinIO client"""
+        # Read MinIO password from Docker secret or env var
+        minio_password = read_secret('minio_password', os.getenv('MINIO_ROOT_PASSWORD', 'minioadmin123'))
+
         return Minio(
             os.getenv('MINIO_ENDPOINT', 'localhost:9000'),
             access_key=os.getenv('MINIO_ROOT_USER', 'minioadmin'),
-            secret_key=os.getenv('MINIO_ROOT_PASSWORD', 'minioadmin123'),
+            secret_key=minio_password,
             secure=os.getenv('MINIO_SECURE', 'false').lower() == 'true'
         )
 

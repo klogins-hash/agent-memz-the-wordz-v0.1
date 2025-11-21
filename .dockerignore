@@ -1,0 +1,53 @@
+# Git
+.git
+.gitignore
+.github/
+
+# Documentation
+*.md
+DEPLOYMENT.md
+ARCHITECTURE.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+*.egg-info/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Secrets - CRITICAL: Never include in images
+secrets/
+.env
+.env.local
+*.key
+*.pem
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+
+# Scripts (not needed in container)
+scripts/deploy-server.sh
+scripts/install-age.sh
+
+# Data volumes
+volumes/

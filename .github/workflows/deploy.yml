@@ -24,27 +24,24 @@ jobs:
       - name: Add server to known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H 37.27.96.88 >> ~/.ssh/known_hosts
 
       - name: Deploy to server
-        env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
         run: |
-          ssh $SERVER_USER@$SERVER_HOST "bash -s" < ./scripts/deploy-server.sh
+          ssh root@37.27.96.88 "bash -s" < ./scripts/deploy-server.sh
 
       - name: Verify deployment
-        env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
-          ssh $SERVER_USER@$SERVER_HOST << 'EOF'
+          ssh root@37.27.96.88 << 'EOF'
             cd /opt/agent-memz
             docker-compose ps
+            echo ""
             echo "✅ Deployment completed successfully!"
+            echo ""
+            echo "🔐 Remember to set secrets on the server:"
+            echo "  /opt/agent-memz/secrets/postgres_password.txt"
+            echo "  /opt/agent-memz/secrets/minio_password.txt"
+            echo "  /opt/agent-memz/secrets/openai_api_key.txt"
           EOF
 
       - name: Notify deployment status
