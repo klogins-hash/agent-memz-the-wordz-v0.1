@@ -1,6 +1,18 @@
 version: '3.8'
 
 services:
+  # Dashboard - SSO-style Landing Page
+  dashboard:
+    image: nginx:alpine
+    container_name: agent-memz-dashboard
+    restart: unless-stopped
+    ports:
+      - "8888:80"
+    volumes:
+      - ./monitoring/dashboard:/usr/share/nginx/html:ro
+    networks:
+      - agent-network
+
   # Portainer - Docker Management UI
   portainer:
     image: portainer/portainer-ce:latest

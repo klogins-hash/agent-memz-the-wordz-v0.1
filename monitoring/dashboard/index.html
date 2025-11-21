@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Memz - Monitoring Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .card-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .card-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .card-url {
+            color: #667eea;
+            font-size: 0.9em;
+            font-family: monospace;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-top: 10px;
+            background: #4ade80;
+            color: white;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .info-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-card h3 {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .info-card p {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Agent Memz</h1>
+            <p>Voice Agent Memory Backend - Monitoring Dashboard</p>
+        </div>
+
+        <div class="grid">
+            <!-- Grafana -->
+            <a href="http://37.27.96.88:3000" target="_blank" class="card">
+                <div class="card-icon">📊</div>
+                <div class="card-title">Grafana</div>
+                <div class="card-description">
+                    Visualize metrics with beautiful dashboards and graphs
+                </div>
+                <div class="card-url">http://37.27.96.88:3000</div>
+                <div class="status">● ONLINE</div>
+                <div style="margin-top: 10px; font-size: 0.85em; color: #666;">
+                    Login: admin / admin
+                </div>
+            </a>
+
+            <!-- Prometheus -->
+            <a href="http://37.27.96.88:9091" target="_blank" class="card">
+                <div class="card-icon">🔥</div>
+                <div class="card-title">Prometheus</div>
+                <div class="card-description">
+                    Query and explore metrics from all exporters
+                </div>
+                <div class="card-url">http://37.27.96.88:9091</div>
+                <div class="status">● ONLINE</div>
+            </a>
+
+            <!-- Portainer -->
+            <a href="https://37.27.96.88:9443" target="_blank" class="card">
+                <div class="card-icon">🐳</div>
+                <div class="card-title">Portainer</div>
+                <div class="card-description">
+                    Manage Docker containers, images, and networks
+                </div>
+                <div class="card-url">https://37.27.96.88:9443</div>
+                <div class="status">● ONLINE</div>
+            </a>
+
+            <!-- MinIO Console -->
+            <a href="http://37.27.96.88:9001" target="_blank" class="card">
+                <div class="card-icon">💾</div>
+                <div class="card-title">MinIO Console</div>
+                <div class="card-description">
+                    S3-compatible object storage management
+                </div>
+                <div class="card-url">http://37.27.96.88:9001</div>
+                <div class="status">● ONLINE</div>
+            </a>
+
+            <!-- Node Exporter -->
+            <a href="http://37.27.96.88:9101/metrics" target="_blank" class="card">
+                <div class="card-icon">🖥️</div>
+                <div class="card-title">Node Exporter</div>
+                <div class="card-description">
+                    System metrics (CPU, memory, disk, network)
+                </div>
+                <div class="card-url">http://37.27.96.88:9101/metrics</div>
+                <div class="status">● ONLINE</div>
+            </a>
+
+            <!-- cAdvisor -->
+            <a href="http://37.27.96.88:8082" target="_blank" class="card">
+                <div class="card-icon">📦</div>
+                <div class="card-title">cAdvisor</div>
+                <div class="card-description">
+                    Container resource usage and performance metrics
+                </div>
+                <div class="card-url">http://37.27.96.88:8082</div>
+                <div class="status">● ONLINE</div>
+            </a>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🗄️ PostgreSQL</h3>
+                <p>
+                    pgvector + Apache AGE<br>
+                    Port: 5432<br>
+                    Database: agent_memory
+                </p>
+            </div>
+
+            <div class="info-card">
+                <h3>⚡ Redis</h3>
+                <p>
+                    Multi-tier caching<br>
+                    Port: 6379<br>
+                    Sessions & Embeddings
+                </p>
+            </div>
+
+            <div class="info-card">
+                <h3>🤖 Cohere AI</h3>
+                <p>
+                    Multilingual Embeddings<br>
+                    Model: embed-multilingual-v3.0<br>
+                    1024-dim vectors
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Server: 37.27.96.88 | Auto-deployed from GitHub</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">All services monitored by Prometheus • Visualized in Grafana</p>
+        </div>
+    </div>
+</body>
+</html>
