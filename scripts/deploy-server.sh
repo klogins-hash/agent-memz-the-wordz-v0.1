@@ -52,6 +52,12 @@ if [ ! -f "$DEPLOY_DIR/secrets/cohere_api_key.txt" ]; then
     fi
 fi
 
+if [ ! -f "$DEPLOY_DIR/secrets/grafana_password.txt" ]; then
+    echo "${GRAFANA_PASSWORD:-admin_grafana_$(openssl rand -hex 8)}" > $DEPLOY_DIR/secrets/grafana_password.txt
+    chmod 600 $DEPLOY_DIR/secrets/grafana_password.txt
+    echo "✓ Created grafana_password secret"
+fi
+
 # Create minimal .env file (non-sensitive config only)
 if [ ! -f "$DEPLOY_DIR/.env" ]; then
     echo "⚙️  Creating .env file..."
@@ -89,9 +95,17 @@ fi
 echo "🐳 Pulling Docker images..."
 docker-compose pull
 
-# Build and start containers
-echo "🏗️  Building and starting containers..."
+# Create the agent network if it doesn't exist
+echo "🌐 Ensuring agent-network exists..."
+docker network create agent-network 2>/dev/null || echo "Network already exists"
+
+# Build and start main services
+echo "🏗️  Building and starting main services..."
 docker-compose up -d --build
+
+# Start monitoring stack
+echo "📊 Starting monitoring stack..."
+docker-compose -f docker-compose.monitoring.yml up -d
 
 # Wait for services to be healthy
 echo "⏳ Waiting for services to be ready..."
@@ -140,5 +154,11 @@ echo "  Redis: localhost:6379"
 echo "  MinIO API: http://37.27.96.88:9000"
 echo "  MinIO Console: http://37.27.96.88:9001"
 echo ""
+echo "Monitoring services:"
+echo "  Portainer: https://37.27.96.88:9443"
+echo "  Grafana: http://37.27.96.88:3000 (admin / $(cat $DEPLOY_DIR/secrets/grafana_password.txt))"
+echo "  Prometheus: http://37.27.96.88:9090"
+echo ""
 echo "View logs: docker-compose logs -f"
-echo "Stop services: docker-compose down"
+echo "View monitoring logs: docker-compose -f docker-compose.monitoring.yml logs -f"
+echo "Stop all services: docker-compose down && docker-compose -f docker-compose.monitoring.yml down"
