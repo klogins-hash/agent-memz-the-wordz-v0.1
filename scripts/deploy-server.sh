@@ -24,14 +24,7 @@ else
     git reset --hard origin/master
 fi
 
-# Backup existing data volumes (if they exist)
-if [ -d "$DEPLOY_DIR/volumes" ]; then
-    echo "💾 Backing up data volumes..."
-    mkdir -p $BACKUP_DIR
-    docker-compose exec -T postgres pg_dumpall -U agentmemz > $BACKUP_DIR/postgres_backup.sql || true
-fi
-
-# Create secrets directory
+# Create secrets directory FIRST (before any docker commands)
 echo "🔐 Setting up Docker secrets..."
 mkdir -p $DEPLOY_DIR/secrets
 chmod 700 $DEPLOY_DIR/secrets
